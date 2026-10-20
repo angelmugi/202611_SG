@@ -70,24 +70,27 @@
   </style>
 
   <script>
+    // 1. Robust Tab Switching Logic
     function switchTab(tabId) {
       if (!tabId) return;
       try {
-        // 1. Hide all tab contents
+        // Hide all tab contents
         var contents = document.querySelectorAll('.tab-content');
         for (var i = 0; i < contents.length; i++) {
           contents[i].classList.remove('active');
+          contents[i].classList.add('hidden');
           contents[i].style.setProperty('display', 'none', 'important');
         }
 
-        // 2. Show the targeted tab
+        // Show targeted tab
         var target = document.getElementById('tab-' + tabId);
         if (target) {
           target.classList.add('active');
+          target.classList.remove('hidden');
           target.style.setProperty('display', 'block', 'important');
         }
 
-        // 3. Update all nav tab buttons
+        // Update all nav tab buttons
         var buttons = document.querySelectorAll('.tab-btn');
         for (var j = 0; j < buttons.length; j++) {
           var btn = buttons[j];
@@ -104,7 +107,7 @@
           }
         }
 
-        // 4. Scroll smoothly to top
+        // Scroll smoothly to top
         try {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (e) {
@@ -116,8 +119,53 @@
     }
     window.switchTab = switchTab;
 
-    // Double insurance: Click listener delegation for all touch/click devices
+    // 2. Packing Checklist Logic
+    function updateChecklist() {
+      var checkboxes = document.querySelectorAll('.pack-chk');
+      var total = checkboxes.length;
+      var checkedCount = 0;
+      var state = {};
+
+      checkboxes.forEach(function(chk) {
+        var id = chk.getAttribute('data-id');
+        state[id] = chk.checked;
+        if (chk.checked) checkedCount++;
+      });
+
+      var badge = document.getElementById('pack-progress');
+      if (badge) {
+        badge.textContent = checkedCount + ' / ' + total + ' 已準備';
+        if (checkedCount === total) {
+          badge.className = 'text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200';
+        } else {
+          badge.className = 'text-xs font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded-md border border-brand-200';
+        }
+      }
+
+      try {
+        localStorage.setItem('sg_trip_packing_v1', JSON.stringify(state));
+      } catch (e) {}
+    }
+    window.updateChecklist = updateChecklist;
+
+    // 3. Document Ready Initialization & Click Delegation
     document.addEventListener('DOMContentLoaded', function() {
+      // Restore packing checklist
+      try {
+        var saved = localStorage.getItem('sg_trip_packing_v1');
+        if (saved) {
+          var state = JSON.parse(saved);
+          document.querySelectorAll('.pack-chk').forEach(function(chk) {
+            var id = chk.getAttribute('data-id');
+            if (state[id]) {
+              chk.checked = true;
+            }
+          });
+        }
+      } catch (e) {}
+      updateChecklist();
+
+      // Mobile Touch Click Delegation
       document.addEventListener('click', function(e) {
         var btn = e.target.closest('[data-tab], [onclick*="switchTab"]');
         if (!btn) return;
@@ -132,7 +180,8 @@
           switchTab(tabId);
         }
       });
-      // Ensure overview is active initially
+
+      // Activate initial tab
       switchTab('overview');
     });
   </script>
@@ -1308,82 +1357,7 @@
   </footer>
 
   <!-- JAVASCRIPT LOGIC -->
-  <script>
-    // Tab switching logic
-    function switchTab(tabId) {
-      // Hide all contents
-      document.querySelectorAll('.tab-content').forEach(function(el) {
-        el.classList.add('hidden');
-      });
-      // Show selected content
-      var target = document.getElementById('tab-' + tabId);
-      if (target) {
-        target.classList.remove('hidden');
-      }
-
-      // Update nav button active states
-      document.querySelectorAll('.tab-btn').forEach(function(btn) {
-        var isTarget = btn.getAttribute('data-tab') === tabId;
-        if (isTarget) {
-          btn.className = 'tab-btn active px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 bg-brand-500 text-white shadow-sm';
-          // Smooth scroll tab into view
-          btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        } else {
-          btn.className = 'tab-btn px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700';
-        }
-      });
-
-      // Scroll top smoothly
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // Packing checklist local state
-    function updateChecklist() {
-      var checkboxes = document.querySelectorAll('.pack-chk');
-      var total = checkboxes.length;
-      var checkedCount = 0;
-      var state = {};
-
-      checkboxes.forEach(function(chk) {
-        var id = chk.getAttribute('data-id');
-        state[id] = chk.checked;
-        if (chk.checked) checkedCount++;
-      });
-
-      var badge = document.getElementById('pack-progress');
-      if (badge) {
-        badge.textContent = checkedCount + ' / ' + total + ' 已準備';
-        if (checkedCount === total) {
-          badge.className = 'text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200';
-        } else {
-          badge.className = 'text-xs font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded-md border border-brand-200';
-        }
-      }
-
-      try {
-        localStorage.setItem('sg_trip_packing_v1', JSON.stringify(state));
-      } catch (e) {
-        // LocalStorage sandbox fallback
-      }
-    }
-
-    // Restore checklist on load
-    window.addEventListener('DOMContentLoaded', function() {
-      try {
-        var saved = localStorage.getItem('sg_trip_packing_v1');
-        if (saved) {
-          var state = JSON.parse(saved);
-          document.querySelectorAll('.pack-chk').forEach(function(chk) {
-            var id = chk.getAttribute('data-id');
-            if (state[id]) {
-              chk.checked = true;
-            }
-          });
-        }
-      } catch (e) {}
-      updateChecklist();
-    });
-  </script>
+  
 
   <!-- Register Service Worker for PWA -->
   <script>
