@@ -1,0 +1,17 @@
+{
+  "name": "新加坡親子自由行手冊",
+  "short_name": "新加坡自由行",
+  "description": "2026 新加坡 6天5夜親子自由行手冊",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/826/826070.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
