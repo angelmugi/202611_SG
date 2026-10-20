@@ -47,6 +47,14 @@
     }
   </script>
   <style>
+    /* Bulletproof tab switching: Ensure tab visibility is 100% independent of external CSS */
+    .tab-content {
+      display: none !important;
+    }
+    .tab-content.active {
+      display: block !important;
+    }
+
     /* Hide scrollbar for clean horizontal tabs on mobile */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -60,6 +68,75 @@
       padding-bottom: env(safe-area-inset-bottom, 16px);
     }
   </style>
+
+  <script>
+    function switchTab(tabId) {
+      if (!tabId) return;
+      try {
+        // 1. Hide all tab contents
+        var contents = document.querySelectorAll('.tab-content');
+        for (var i = 0; i < contents.length; i++) {
+          contents[i].classList.remove('active');
+          contents[i].style.setProperty('display', 'none', 'important');
+        }
+
+        // 2. Show the targeted tab
+        var target = document.getElementById('tab-' + tabId);
+        if (target) {
+          target.classList.add('active');
+          target.style.setProperty('display', 'block', 'important');
+        }
+
+        // 3. Update all nav tab buttons
+        var buttons = document.querySelectorAll('.tab-btn');
+        for (var j = 0; j < buttons.length; j++) {
+          var btn = buttons[j];
+          var isTarget = btn.getAttribute('data-tab') === tabId;
+          if (isTarget) {
+            btn.className = 'tab-btn active px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 bg-brand-500 text-white shadow-sm';
+            try {
+              if (btn.scrollIntoView) {
+                btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+              }
+            } catch (e) {}
+          } else {
+            btn.className = 'tab-btn px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700';
+          }
+        }
+
+        // 4. Scroll smoothly to top
+        try {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (e) {
+          window.scrollTo(0, 0);
+        }
+      } catch (err) {
+        console.error('Error switching tab to ' + tabId + ':', err);
+      }
+    }
+    window.switchTab = switchTab;
+
+    // Double insurance: Click listener delegation for all touch/click devices
+    document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-tab], [onclick*="switchTab"]');
+        if (!btn) return;
+        var tabId = btn.getAttribute('data-tab');
+        if (!tabId) {
+          var onclickAttr = btn.getAttribute('onclick') || '';
+          var m = onclickAttr.match(/switchTab\(['"]([^'"]+)['"]\)/);
+          if (m) tabId = m[1];
+        }
+        if (tabId) {
+          e.preventDefault();
+          switchTab(tabId);
+        }
+      });
+      // Ensure overview is active initially
+      switchTab('overview');
+    });
+  </script>
+
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased pb-24 selection:bg-brand-500 selection:text-white">
 
@@ -89,7 +166,7 @@
           ✈️ 星宇 JX771 / JX772
         </span>
         <span class="inline-flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded backdrop-blur-sm whitespace-nowrap">
-          🏨 茂昌閣 3N + JEN今旅 2N
+          🏨 香港街明古連 3N + JEN今旅 2N
         </span>
         <span class="inline-flex items-center gap-1 bg-amber-400/20 text-amber-200 border border-amber-400/30 px-2 py-0.5 rounded whitespace-nowrap">
           🍜 11/12 黃亞細肉骨茶
@@ -112,7 +189,7 @@
         D3 11/12 (四) ★黃亞細/遊船
       </button>
       <button onclick="switchTab('day4')" class="tab-btn px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700" data-tab="day4">
-        D4 11/13 (五) 海洋館/換宿
+        D4 11/13 (五) 海洋館/換宿/伴手禮
       </button>
       <button onclick="switchTab('day5')" class="tab-btn px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700" data-tab="day5">
         D5 11/14 (六) 動物園/草坪
@@ -135,7 +212,7 @@
     <!-- ========================================== -->
     <!-- TAB: OVERVIEW (行程總覽) -->
     <!-- ========================================== -->
-    <div id="tab-overview" class="tab-content space-y-4">
+    <div id="tab-overview" class="tab-content active space-y-4">
       
       <!-- Flight Cards -->
       <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
@@ -219,17 +296,17 @@
                   前 3 晚 (11/10 - 11/13)
                 </span>
                 <h3 class="font-bold text-slate-900 text-sm">
-                  新加坡瑞士茂昌閣酒店 (Paradox Singapore Merchant Court)
+                  新加坡香港街明古連酒店 (Hotel Bencoolen Hong Kong Street)
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">20 Merchant Rd, Singapore 058281</p>
+                <p class="text-xs text-slate-500 mt-0.5">47 Hongkong St, Singapore 059685</p>
               </div>
-              <a href="https://maps.app.goo.gl/xp3pbMgKgg5UTF7q6" target="_blank" rel="noopener noreferrer" class="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-800 bg-brand-50 hover:bg-brand-100 px-2.5 py-1.5 rounded-lg border border-brand-200 transition-colors">
+              <a href="https://maps.app.goo.gl/31ztbwarDVa1kUCP6" target="_blank" rel="noopener noreferrer" class="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-800 bg-brand-50 hover:bg-brand-100 px-2.5 py-1.5 rounded-lg border border-brand-200 transition-colors">
                 <span>📍 開啟地圖</span>
               </a>
             </div>
             <div class="mt-2.5 pt-2 border-t border-slate-200/60 text-xs text-slate-600 space-y-1">
-              <p>🚇 <strong>交通：</strong> Clarke Quay 克拉碼頭地鐵站 (NE5) 步行 1 分鐘即達。</p>
-              <p>⭐ <strong>亮點：</strong> 正對克拉碼頭河岸，步行 3 分鐘至福康寧公園綠地；<strong>正對面即為 Central Square（黃亞細肉骨茶步行僅 200m）</strong>，午睡回房零時差！</p>
+              <p>🚇 <strong>交通：</strong> Clarke Quay 克拉碼頭地鐵站 (NE5) 步行僅 2-3 分鐘（約 200 公尺）；牛車水地鐵站步行約 8 分鐘。</p>
+              <p>⭐ <strong>亮點：</strong> 鬧中取靜且推車友善！步行 2 分鐘抵芳林公園與新加坡河畔、3 分鐘達松發肉骨茶總店與 Central 商場；距離 11/12 必訪之「黃亞細肉骨茶 (Central Square 店)」步行僅約 350 公尺（約 4-5 分鐘），午睡回房極為順暢便利！</p>
             </div>
           </div>
 
@@ -300,45 +377,33 @@
         <div class="divide-y divide-slate-100 text-xs">
           <div class="py-2.5 flex items-center justify-between">
             <span class="font-bold text-slate-700 w-24">D1 11/10 (二)</span>
-            <span class="text-slate-600 flex-1 px-2">星宇 JX771 飛抵 $
-ightarrow$ 茂昌閣入住 $
-ightarrow$ 克拉碼頭與福康寧公園漫步</span>
-            <button onclick="switchTab('day1')" class="text-brand-600 font-medium shrink-0">查看詳情 →</button>
+            <span class="text-slate-600 flex-1 px-2">星宇 JX771 飛抵 ➔ 明古連香港街入住 ➔ 克拉碼頭與福康寧公園漫步</span>
+            <button onclick="switchTab('day1')" class="text-brand-600 font-medium shrink-0">查看詳情 &rarr;</button>
           </div>
           <div class="py-2.5 flex items-center justify-between">
             <span class="font-bold text-slate-700 w-24">D2 11/11 (三)</span>
-            <span class="text-slate-600 flex-1 px-2">濱海灣花園冷室雙溫室 $
-ightarrow$ 金沙鼎泰豐 $
-ightarrow$ 魚尾獅公園與夜間水舞秀</span>
-            <button onclick="switchTab('day2')" class="text-brand-600 font-medium shrink-0">查看詳情 →</button>
+            <span class="text-slate-600 flex-1 px-2">濱海灣花園冷室雙溫室 ➔ 金沙鼎泰豐 ➔ 魚尾獅公園與夜間水舞秀</span>
+            <button onclick="switchTab('day2')" class="text-brand-600 font-medium shrink-0">查看詳情 &rarr;</button>
           </div>
           <div class="py-2.5 flex items-center justify-between bg-amber-50/50 -mx-2 px-2 rounded-lg">
             <span class="font-bold text-amber-900 w-24">D3 11/12 (四)</span>
-            <span class="text-amber-900 font-medium flex-1 px-2">植物園兒童花園 $
-ightarrow$ ★黃亞細肉骨茶(午餐) $
-ightarrow$ 克拉碼頭木造遊船</span>
-            <button onclick="switchTab('day3')" class="text-brand-600 font-medium shrink-0">查看詳情 →</button>
+            <span class="text-amber-900 font-medium flex-1 px-2">植物園兒童花園 ➔ ★黃亞細肉骨茶(午餐) ➔ 克拉碼頭木造遊船</span>
+            <button onclick="switchTab('day3')" class="text-brand-600 font-medium shrink-0">查看詳情 &rarr;</button>
           </div>
           <div class="py-2.5 flex items-center justify-between">
             <span class="font-bold text-slate-700 w-24">D4 11/13 (五)</span>
-            <span class="text-slate-600 flex-1 px-2">聖淘沙 S.E.A. 海洋館 $
-ightarrow$ 換宿入住 JEN 烏節門 $
-ightarrow$ 頂樓無邊際泳池</span>
-            <button onclick="switchTab('day4')" class="text-brand-600 font-medium shrink-0">查看詳情 →</button>
+            <span class="text-slate-600 flex-1 px-2">聖淘沙 S.E.A. 海洋館 ➔ 商場推車午睡/換宿入住 JEN ➔ 烏節路伴手禮大採購</span>
+            <button onclick="switchTab('day4')" class="text-brand-600 font-medium shrink-0">查看詳情 &rarr;</button>
           </div>
           <div class="py-2.5 flex items-center justify-between">
             <span class="font-bold text-slate-700 w-24">D5 11/14 (六)</span>
-            <span class="text-slate-600 flex-1 px-2">新加坡動物園遊園車 $
-ightarrow$ 濱海堤壩斜坡大草坪放風箏 $
-ightarrow$ 老巴剎沙爹街</span>
-            <button onclick="switchTab('day5')" class="text-brand-600 font-medium shrink-0">查看詳情 →</button>
+            <span class="text-slate-600 flex-1 px-2">新加坡動物園遊園車 ➔ 濱海堤壩斜坡大草坪放風箏 ➔ 老巴剎沙爹街</span>
+            <button onclick="switchTab('day5')" class="text-brand-600 font-medium shrink-0">查看詳情 &rarr;</button>
           </div>
           <div class="py-2.5 flex items-center justify-between">
             <span class="font-bold text-slate-700 w-24">D6 11/15 (日)</span>
-            <span class="text-slate-600 flex-1 px-2">星耀樟宜雨漩渦瀑布 $
-ightarrow$ 莆田軟爛滷麵 $
-ightarrow$ JX772 (機上午睡) 返抵台灣</span>
-            <button onclick="switchTab('day6')" class="text-brand-600 font-medium shrink-0">查看詳情 →</button>
+            <span class="text-slate-600 flex-1 px-2">星耀樟宜雨漩渦瀑布 ➔ 莆田軟爛滷麵 ➔ JX772 (機上午睡) 返抵台灣</span>
+            <button onclick="switchTab('day6')" class="text-brand-600 font-medium shrink-0">查看詳情 &rarr;</button>
           </div>
         </div>
       </section>
@@ -348,14 +413,14 @@ ightarrow$ JX772 (機上午睡) 返抵台灣</span>
     <!-- ========================================== -->
     <!-- TAB: DAY 1 (11/10 週二) -->
     <!-- ========================================== -->
-    <div id="tab-day1" class="tab-content hidden space-y-3">
+    <div id="tab-day1" class="tab-content space-y-3">
       <div class="bg-gradient-to-r from-brand-700 to-brand-800 text-white p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
         <div>
           <span class="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">Day 1</span>
           <h2 class="text-base font-bold mt-1">2026/11/10 (週二) 抵達與克拉碼頭散策</h2>
         </div>
         <div class="text-right text-xs text-brand-100">
-          住宿：Paradox 茂昌閣 (第 1 晚)
+          住宿：香港街明古連酒店 (第 1 晚)
         </div>
       </div>
 
@@ -366,8 +431,7 @@ ightarrow$ JX772 (機上午睡) 返抵台灣</span>
           <span class="text-slate-400 font-medium">⏱️ 飛行 300 分</span>
         </div>
         <h3 class="font-bold text-slate-900 text-sm">搭乘星宇航空 JX771 啟程直飛新加坡</h3>
-        <p class="text-xs text-slate-500 mt-1">桃園機場 T2 $
-ightarrow$ 樟宜機場 T2 (A350-900)</p>
+        <p class="text-xs text-slate-500 mt-1">桃園機場 T2 ➔ 樟宜機場 T2 (A350-900)</p>
         <div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 text-xs text-slate-600 space-y-1">
           <p>📍 <strong>起訖地點：</strong> <a href="https://maps.google.com/?q=Taoyuan+International+Airport+Terminal+2" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">桃園機場T2</a> 與 <a href="https://maps.google.com/?q=Singapore+Changi+Airport+Terminal+2" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">樟宜機場T2</a></p>
           <p>👶 <strong>育兒提醒：</strong> 起降時給寶寶喝水或喝奶減輕耳壓；機上備有嬰兒安全帶與預訂掛籃。</p>
@@ -394,10 +458,10 @@ ightarrow$ 樟宜機場 T2 (A350-900)</p>
           <span class="px-2 py-0.5 rounded-full font-bold bg-indigo-100 text-indigo-800">14:30 - 15:15</span>
           <span class="text-slate-400 font-medium">⏱️ 計程車約 25 分</span>
         </div>
-        <h3 class="font-bold text-slate-900 text-sm">搭乘計程車直達 Paradox 茂昌閣酒店</h3>
+        <h3 class="font-bold text-slate-900 text-sm">搭乘計程車直達香港街明古連酒店 (Hotel Bencoolen Hong Kong Street)</h3>
         <p class="text-xs text-slate-500 mt-1">走 ECP 東海岸大道，免搬行李最輕鬆 (車資約 SGD 22-26)</p>
         <div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 text-xs text-slate-600 space-y-1">
-          <p>📍 <strong>目的地：</strong> <a href="https://maps.app.goo.gl/xp3pbMgKgg5UTF7q6" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">Paradox Singapore Merchant Court</a></p>
+          <p>📍 <strong>目的地：</strong> <a href="https://maps.app.goo.gl/31ztbwarDVa1kUCP6" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">Hotel Bencoolen Hong Kong Street</a></p>
           <p>🚕 <strong>交通技巧：</strong> 機場排班 Standard Taxi 依法幼童免汽座可抱坐，推車直接收納於後車廂。</p>
         </div>
       </div>
@@ -444,14 +508,14 @@ ightarrow$ 樟宜機場 T2 (A350-900)</p>
     <!-- ========================================== -->
     <!-- TAB: DAY 2 (11/11 週三) -->
     <!-- ========================================== -->
-    <div id="tab-day2" class="tab-content hidden space-y-3">
+    <div id="tab-day2" class="tab-content space-y-3">
       <div class="bg-gradient-to-r from-brand-700 to-brand-800 text-white p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
         <div>
           <span class="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">Day 2</span>
           <h2 class="text-base font-bold mt-1">2026/11/11 (週三) 濱海花園與魚尾獅</h2>
         </div>
         <div class="text-right text-xs text-brand-100">
-          住宿：Paradox 茂昌閣 (第 2 晚)
+          住宿：香港街明古連酒店 (第 2 晚)
         </div>
       </div>
 
@@ -480,7 +544,7 @@ ightarrow$ 樟宜機場 T2 (A350-900)</p>
         <p class="text-xs text-slate-500 mt-1">經冷氣步道至金沙商場，備有頂級兒童高腳椅與清淡排骨炒飯/蒸餃</p>
         <div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 text-xs text-slate-600 space-y-1">
           <p>📍 <strong>地點：</strong> <a href="https://maps.google.com/?q=The+Shoppes+at+Marina+Bay+Sands" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">The Shoppes at Marina Bay Sands</a></p>
-          <p>🚕 <strong>回房動線：</strong> 12:40 於金沙門口搭計程車 (約 10 分鐘，SGD 10)，準確於 12:55 抵達 Paradox 飯店房間！</p>
+          <p>🚕 <strong>回房動線：</strong> 12:40 於金沙門口搭計程車 (約 10 分鐘，SGD 10)，準確於 12:55 抵達香港街明古連酒店房間！</p>
         </div>
       </div>
 
@@ -492,7 +556,7 @@ ightarrow$ 樟宜機場 T2 (A350-900)</p>
           </span>
           <span class="text-amber-800 font-bold">回客房深度充電</span>
         </div>
-        <h3 class="font-bold text-amber-950 text-base">回到 Paradox 客房・安穩深層午睡 (2小時)</h3>
+        <h3 class="font-bold text-amber-950 text-base">回到明古連客房・安穩深層午睡 (2小時)</h3>
         <p class="text-xs text-amber-800 mt-1">
           拉上厚遮光簾、室溫調至 24°C，嚴格遵守作息保護 1.5 歲幼兒體能，大人同步休憩放鬆。
         </p>
@@ -531,14 +595,14 @@ ightarrow$ 樟宜機場 T2 (A350-900)</p>
     <!-- ========================================== -->
     <!-- TAB: DAY 3 (11/12 週四) - DESIGNATED RESTAURANT -->
     <!-- ========================================== -->
-    <div id="tab-day3" class="tab-content hidden space-y-3">
+    <div id="tab-day3" class="tab-content space-y-3">
       <div class="bg-gradient-to-r from-amber-600 to-amber-700 text-white p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
         <div>
           <span class="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">Day 3 ★ 指定美食日</span>
           <h2 class="text-base font-bold mt-1">2026/11/12 (週四) 植物園兒童樂園 & 黃亞細肉骨茶</h2>
         </div>
         <div class="text-right text-xs text-amber-100">
-          住宿：Paradox 茂昌閣 (第 3 晚)
+          住宿：香港街明古連酒店 (第 3 晚)
         </div>
       </div>
 
@@ -576,7 +640,7 @@ ightarrow$ 樟宜機場 T2 (A350-900)</p>
             </a>
           </div>
           <p>🚇 <strong>交通動線：</strong> 自植物園站搭市區線回 Fort Canning 站 (12分)，步行 4 分鐘抵達 Central Square 1樓。</p>
-          <p>🎯 <strong>行程神安排：</strong> <strong>餐廳就在入住的 Paradox 飯店正對面（距離僅約 200 公尺、步行 3 分鐘）！</strong> 12:45 吃完散步過馬路直接踏入房間，完全無懼塞車，100% 確保寶寶能在 13:00 準時上床午睡！</p>
+          <p>🎯 <strong>行程神安排：</strong> <strong>餐廳距離入住的香港街明古連酒店僅約 350 公尺（步行約 4-5 分鐘）！</strong> 12:45 吃完散步過馬路直接踏入房間，完全無懼塞車，100% 確保寶寶能在 13:00 準時上床午睡！</p>
           <p>🍲 <strong>推薦美味：</strong> 上等排骨肉骨茶、特選滷豬腳、油條、滷豆干；寶寶可點白高湯、淋滷汁飯與軟嫩瘦肉。</p>
         </div>
       </div>
@@ -589,7 +653,7 @@ ightarrow$ 樟宜機場 T2 (A350-900)</p>
           </span>
           <span class="text-amber-800 font-bold">肉骨茶吃飽回房秒睡</span>
         </div>
-        <h3 class="font-bold text-amber-950 text-sm">Paradox 客房・深層午睡 (2小時)</h3>
+        <h3 class="font-bold text-amber-950 text-sm">明古連客房・深層午睡 (2小時)</h3>
         <p class="text-xs text-amber-800 mt-1">
           中央廣場走回飯店僅 3 分鐘，寶寶肚子飽飽，在涼爽冷氣房進入深層睡眠徹底恢復體力。
         </p>
@@ -625,16 +689,16 @@ ightarrow$ 樟宜機場 T2 (A350-900)</p>
     </div>
 
     <!-- ========================================== -->
-    <!-- TAB: DAY 4 (11/13 週五) - HOTEL SWITCH -->
+    <!-- TAB: DAY 4 (11/13 週五) - HOTEL SWITCH, STROLLER NAP & SHOPPING -->
     <!-- ========================================== -->
-    <div id="tab-day4" class="tab-content hidden space-y-3">
+    <div id="tab-day4" class="tab-content space-y-3">
       <div class="bg-gradient-to-r from-brand-700 to-brand-800 text-white p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
         <div>
-          <span class="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">Day 4 換宿日</span>
-          <h2 class="text-base font-bold mt-1">2026/11/13 (週五) 聖淘沙海洋館 & 換宿 JEN 烏節門</h2>
+          <span class="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">Day 4 換宿・推車午睡・伴手禮購物</span>
+          <h2 class="text-base font-bold mt-1">2026/11/13 (週五) 聖淘沙海洋館 ➔ 商場推車午睡/換宿 ➔ 烏節路伴手禮</h2>
         </div>
         <div class="text-right text-xs text-brand-100">
-          住宿：JEN 烏節門 (第 1 晚)
+          住宿：JEN 烏節門 (第 1 晚，15:00後入住)
         </div>
       </div>
 
@@ -648,66 +712,100 @@ ightarrow$ 樟宜機場 T2 (A350-900)</p>
         <p class="text-xs text-slate-500 mt-1">巨大落地水族景觀窗看魔鬼氈、鯊魚群與熱帶珊瑚</p>
         <div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 text-xs text-slate-600 space-y-1">
           <p>📍 <strong>地點：</strong> <a href="https://maps.google.com/?q=S.E.A.+Aquarium+Resorts+World+Sentosa" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">S.E.A. Aquarium (聖淘沙名勝世界)</a></p>
-          <p>🚕 <strong>交通：</strong> 早上 08:30 行李打包寄放 Paradox 櫃檯，門口搭計程車直達名勝世界地下停車場 (約 12 分鐘，SGD 12-15)。</p>
+          <p>🚕 <strong>交通：</strong> 早上 08:30 行李打包寄放香港街明古連酒店櫃檯，門口搭計程車直達名勝世界地下停車場 (約 12 分鐘，SGD 12-15)。</p>
           <p>👶 <strong>育兒亮點：</strong> 全館 100% 室內恆溫空調，藍色海洋燈光營造平靜氛圍，升降電梯完整直通，1.5歲寶寶看游動大魚極專注開心。</p>
         </div>
       </div>
 
-      <!-- Item 2: Switch Hotel & Lunch 12:00 - 13:00 -->
+      <!-- Item 2: Switch Hotel & Luggage Drop-off & Lunch 12:00 - 13:00 -->
       <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
         <div class="flex items-center justify-between text-xs mb-2">
-          <span class="px-2 py-0.5 rounded-full font-bold bg-indigo-100 text-indigo-800">12:00 - 13:00 (換宿與午餐)</span>
-          <span class="text-slate-400 font-medium">⏱️ 計程車載行李 25 分</span>
+          <span class="px-2 py-0.5 rounded-full font-bold bg-indigo-100 text-indigo-800">12:00 - 13:00 (換宿移動 & 寄行李)</span>
+          <span class="text-slate-400 font-medium">⏱️ 計程車載行李約 25 分</span>
         </div>
-        <h3 class="font-bold text-slate-900 text-sm">回 Paradox 取行李 $
-ightarrow$ 計程車直奔 JEN 烏節門入住</h3>
-        <p class="text-xs text-slate-500 mt-1">抵達 JEN Singapore Orchardgateway Check-in，商場享用午餐</p>
+        <h3 class="font-bold text-slate-900 text-sm">回明古連酒店取行李 ➔ 計程車直奔 JEN 烏節門寄放行李 & 午餐</h3>
+        <p class="text-xs text-slate-500 mt-1">抵達 JEN 烏節門禮賓部寄放行李，於連通商場享用午餐</p>
         <div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 text-xs text-slate-600 space-y-1">
           <p>📍 <strong>新飯店：</strong> <a href="https://maps.app.goo.gl/xVxh7WLKsCC3SUEp7" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">JEN Singapore Orchardgateway (點此定位)</a></p>
-          <p>🚕 <strong>換宿動線：</strong> 12:00 自聖淘沙搭車回 Paradox 取行李，隨後載行李直奔烏節路 JEN 飯店 (總車資約 SGD 20-25)，12:35 順利抵達入住。</p>
-          <p>🍲 <strong>午餐：</strong> 樓下 Orchardgateway / 313@Somerset 美食街享用清淡湯麵或吐司工坊，12:55 順利進新房！</p>
+          <p>🚕 <strong>換宿動線：</strong> 12:00 自聖淘沙搭車回明古連酒店取行李，隨後載行李直奔烏節路 JEN 飯店 (總車資約 SGD 20-25)，12:35 抵達飯店大廳。</p>
+          <p>🧳 <strong>15:00 前寄放技巧：</strong> 因飯店規定 15:00 後才可辦理入住入房，先將大件行李交付飯店 1 樓/大廳禮賓櫃檯（Concierge）免費保管，輕裝帶推車下樓用餐！</p>
+          <p>🍲 <strong>午餐：</strong> 樓下 Orchardgateway / 313@Somerset 美食街享用清淡湯麵或吐司工坊，13:00 準時進入推車午睡模式。</p>
         </div>
       </div>
 
-      <!-- Item 3: NAP TIME (13:00 - 15:00) -->
-      <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-4 shadow-sm border border-amber-200">
+      <!-- Item 3: STROLLER NAP TIME (13:00 - 15:00) IN MALLS -->
+      <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-4 shadow-sm border-2 border-amber-300 ring-2 ring-amber-200/60">
         <div class="flex items-center justify-between text-xs mb-1.5">
-          <span class="px-2.5 py-0.5 rounded-full font-bold bg-amber-500 text-white">
-            💤 13:00 - 15:00 寶寶黃金午睡
+          <span class="px-2.5 py-0.5 rounded-full font-bold bg-amber-500 text-white shadow-sm flex items-center gap-1">
+            💤 13:00 - 15:00 寶寶商場推車安穩午睡
           </span>
-          <span class="text-amber-800 font-bold">新飯店無縫午睡</span>
+          <span class="text-amber-800 font-bold">推車冷氣午睡 2 小時</span>
         </div>
-        <h3 class="font-bold text-amber-950 text-sm">JEN 烏節門新客房・安穩深層午睡 (2小時)</h3>
-        <p class="text-xs text-amber-800 mt-1">
-          完美無縫換宿！完全不犧牲寶寶每日 13:00-15:00 午睡作息鐵律，換飯店同樣精神飽滿。
+        <h3 class="font-bold text-amber-950 text-base">313@Somerset & 烏節門三大連通商場・推車漫步午睡</h3>
+        <p class="text-xs text-amber-900 mt-1 leading-relaxed">
+          <strong>【商場推車午睡指南】：</strong> 313@Somerset、Orchardgateway、Orchard Central 三大商場室內天橋與地下通道全面互通，具備頂級涼爽恆溫空調、平整大理石地面與高規格無障礙電梯。給寶寶推車拉上遮光篷、蓋上薄毯並夾上隨身小電扇，推車慢行晃動讓寶寶在推車內深層安睡 2 小時！
+        </p>
+        <p class="text-xs text-amber-800 mt-1.5 bg-white/80 p-2 rounded-lg border border-amber-200">
+          ☕ <strong>大人小確幸：</strong> 寶寶熟睡時，大人可在商場內的 % Arabica、Bacha Coffee 或星巴克點杯咖啡放鬆，安靜吹冷氣歇腳，絲毫不浪費等候入住的時間。
         </p>
       </div>
 
-      <!-- Item 4: Afternoon 16:00 - 18:00 Activity -->
-      <div class="bg-white rounded-2xl p-4 shadow-sm border border-brand-200 ring-1 ring-brand-100">
+      <!-- Item 4: Check-in at 15:00 -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
         <div class="flex items-center justify-between text-xs mb-2">
-          <span class="px-2 py-0.5 rounded-full font-bold bg-brand-100 text-brand-800">16:00 - 18:00 (下午行程)</span>
-          <span class="text-brand-600 font-medium">⏱️ 免搭車 / 電梯直達</span>
+          <span class="px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">15:00 - 16:00 (正式入住)</span>
+          <span class="text-slate-400 font-medium">⏱️ 電梯直達大廳</span>
         </div>
-        <h3 class="font-bold text-slate-900 text-sm">JEN 頂樓無邊際景觀泳池戲水 或 翡翠山娘惹街漫步</h3>
-        <p class="text-xs text-slate-500 mt-1">飯店 19 樓無邊際高空景觀泳池（設有淺水兒童池）或漫步傳統排屋街</p>
+        <h3 class="font-bold text-slate-900 text-sm">JEN 烏節門 15:00 正式辦理入住・行李進房開箱整頓</h3>
+        <p class="text-xs text-slate-500 mt-1">15:00 準時辦妥 Check-in，領取房卡與行李進房，脫鞋活動喝下午奶。</p>
         <div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 text-xs text-slate-600 space-y-1">
-          <p>📍 <strong>地點：</strong> <a href="https://maps.app.goo.gl/xVxh7WLKsCC3SUEp7" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">JEN 19F Rooftop Pool</a> 與 <a href="https://maps.google.com/?q=Emerald+Hill+Road+Singapore" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">翡翠山歷史街區 (Emerald Hill)</a></p>
-          <p>👶 <strong>育兒亮點：</strong> 換宿當天下午免舟車勞頓！頂樓泳池微風徐徐、躺椅舒適，若不游泳可至飯店後方翡翠山推車散步，欣賞百年歷史南洋建築與拍全家福。</p>
+          <p>🏨 <strong>客房整備：</strong> 寶寶午睡醒來精神正好，在寬敞新客房內喝奶、換尿布與吃小點心，大人稍作梳洗休息。</p>
         </div>
       </div>
 
-      <!-- Item 5: Dinner -->
-      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
+      <!-- Item 5: Afternoon 16:00 - 18:00 Activity -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-brand-200 ring-1 ring-brand-100">
         <div class="flex items-center justify-between text-xs mb-2">
-          <span class="px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">18:00 - 20:00 (晚餐)</span>
-          <span class="text-slate-400 font-medium">⏱️ 地鐵 2 站僅 4 分</span>
+          <span class="px-2 py-0.5 rounded-full font-bold bg-brand-100 text-brand-800">16:00 - 18:00 (下午放鬆)</span>
+          <span class="text-brand-600 font-medium">⏱️ 免搭車 / 電梯直達 19F</span>
         </div>
-        <h3 class="font-bold text-slate-900 text-sm">紐頓熟食中心 (Newton Food Centre) 米其林小吃巡禮</h3>
-        <p class="text-xs text-slate-500 mt-1">電影《瘋狂亞洲富豪》經典取景地，沙爹串、福建蝦麵、清爽魚片湯</p>
+        <h3 class="font-bold text-slate-900 text-sm">JEN 頂樓 19F 無邊際景觀泳池戲水放鬆 或 翡翠山歷史林蔭道漫步</h3>
+        <p class="text-xs text-slate-500 mt-1">飯店 19 樓無邊際高空景觀泳池（設有兒童戲水淺池）俯瞰烏節路天際線</p>
         <div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 text-xs text-slate-600 space-y-1">
-          <p>📍 <strong>地點：</strong> <a href="https://maps.google.com/?q=Newton+Food+Centre+Singapore" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">Newton Food Centre (點此導航)</a></p>
-          <p>🚇 <strong>交通：</strong> Somerset 站搭地鐵紅線直達 Newton 站 (僅2站、4分鐘)，出站天橋電梯直達熟食中心。</p>
+          <p>📍 <strong>地點：</strong> <a href="https://maps.app.goo.gl/xVxh7WLKsCC3SUEp7" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">JEN 19F Rooftop Pool</a> 與 <a href="https://maps.google.com/?q=Emerald+Hill+Road+Singapore" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">翡翠山歷史街區 (Emerald Hill)</a></p>
+          <p>👶 <strong>育兒亮點：</strong> 換宿當天免舟車勞頓！頂樓泳池微風徐徐、躺椅舒適，若不游泳可至飯店後方翡翠山推車散步，欣賞百年歷史南洋建築與拍全家福。</p>
+        </div>
+      </div>
+
+      <!-- Item 6: SOUVENIR SHOPPING & DINNER (18:00 - 20:30) -->
+      <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 shadow-sm border-2 border-purple-300 ring-2 ring-purple-200/60">
+        <div class="flex items-center justify-between text-xs mb-2">
+          <span class="px-2.5 py-0.5 rounded-full font-bold bg-purple-600 text-white shadow-sm flex items-center gap-1">
+            🛍️ 18:00 - 20:30 ★ 烏節路伴手禮大採購之夜
+          </span>
+          <span class="text-purple-800 font-bold">買完電梯直達回房！</span>
+        </div>
+        <h3 class="font-bold text-purple-950 text-base">烏節路商圈伴手禮採購巡禮 & 舒適商場晚餐</h3>
+        <p class="text-xs text-purple-900 mt-1">
+          313@Somerset ➔ Orchardgateway ➔ 高島屋百貨 (Takashimaya S.C. / Ngee Ann City)
+        </p>
+
+        <div class="mt-3 p-3 rounded-xl bg-white/95 border border-purple-200 text-xs text-slate-700 space-y-2.5">
+          <p class="font-bold text-purple-900 border-b border-purple-100 pb-1">
+            🎁 新加坡必買四大伴手禮攻略（飯店樓下與對街一網打盡）：
+          </p>
+          <div class="space-y-1.5 pl-1">
+            <p>🍰 <strong>1. Bengawan Solo（斑蘭戚風蛋糕 & 南洋娘惹糕）：</strong> 位於 313@Somerset B1 / 高島屋 B2。必買鎮店招牌綠蛋糕（斑蘭葉香氣天然鬆軟）、原味與彩虹千層糕 (Kueh Lapis)。</p>
+            <p>🛒 <strong>2. FairPrice Finest 旗艦超市採買：</strong> 位於 313@Somerset B2。一站購足百勝廚叻沙拉麵 (Prima Taste Laksa)、松發/黃亞細肉骨茶香料包、亞坤/吐司工坊咖椰醬 (Kaya Jam)、美祿恐龍巧克力粉、IRVINS 鹹蛋黃魚皮、Tiger 虎標萬金油軟膏與防蚊噴霧！</p>
+            <p>☕ <strong>3. Bacha Coffee 摩洛哥奢華咖啡：</strong> 位於高島屋百貨 (Takashimaya) 或 ION Orchard。精緻金箔手提袋與綜合濾掛咖啡禮盒，送禮最體面。</p>
+            <p>🍵 <strong>4. TWG Tea 頂級南洋調配茶：</strong> 烏節路高島屋 B2 / ION Orchard 均有專櫃，1837 紅茶與銀月綠茶經典必收。</p>
+          </div>
+          <div class="pt-2 border-t border-purple-100 flex items-center justify-between text-slate-600">
+            <span>🍲 <strong>晚餐推薦：</strong> 313@Somerset 食代館美食街或高島屋樂皇小籠包（備有兒童椅與清淡蒸食）。</span>
+          </div>
+          <p class="text-[11px] text-purple-800 bg-purple-50 p-2 rounded-lg border border-purple-200 font-medium">
+            ⭐ <strong>神級優勢：</strong> 飯店就在 313@Somerset 正上方！買完大包小包重物直接搭專用電梯回房放好，免去提重物在戶外搭計程車或擠地鐵的疲累！
+          </p>
         </div>
       </div>
     </div>
@@ -715,7 +813,7 @@ ightarrow$ 計程車直奔 JEN 烏節門入住</h3>
     <!-- ========================================== -->
     <!-- TAB: DAY 5 (11/14 週六) -->
     <!-- ========================================== -->
-    <div id="tab-day5" class="tab-content hidden space-y-3">
+    <div id="tab-day5" class="tab-content space-y-3">
       <div class="bg-gradient-to-r from-brand-700 to-brand-800 text-white p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
         <div>
           <span class="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">Day 5</span>
@@ -795,6 +893,7 @@ ightarrow$ 計程車直奔 JEN 烏節門入住</h3>
         <div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 text-xs text-slate-600 space-y-1">
           <p>📍 <strong>地點：</strong> <a href="https://maps.google.com/?q=Lau+Pa+Sat+Satay+Street+Singapore" target="_blank" rel="noopener noreferrer" class="text-brand-600 font-medium hover:underline">老巴剎沙爹街 (Lau Pa Sat)</a></p>
           <p>🍢 <strong>用餐推薦：</strong> 幼童可坐在老巴剎室內冷氣或吊扇區，享用印度甩餅 (Roti Prata)、炒蘿蔔糕與現打熱帶果汁。</p>
+          <p class="mt-1 text-[11px] text-brand-700 bg-brand-50 p-2 rounded-lg border border-brand-200">🛍️ <strong>伴手禮採買備案：</strong> 若 11/13 傍晚想先在飯店游泳，亦可將伴手禮採買挪至今日 (11/14) 傍晚！老巴剎用餐後搭車 8 分鐘回烏節路商圈（高島屋 / 313@Somerset / DON DON DONKI 烏節店）採買，彈性十足。</p>
         </div>
       </div>
     </div>
@@ -802,7 +901,7 @@ ightarrow$ 計程車直奔 JEN 烏節門入住</h3>
     <!-- ========================================== -->
     <!-- TAB: DAY 6 (11/15 週日) - RETURN HOME -->
     <!-- ========================================== -->
-    <div id="tab-day6" class="tab-content hidden space-y-3">
+    <div id="tab-day6" class="tab-content space-y-3">
       <div class="bg-gradient-to-r from-brand-700 to-brand-800 text-white p-3.5 rounded-2xl shadow-sm flex items-center justify-between">
         <div>
           <span class="text-xs bg-white/20 px-2 py-0.5 rounded font-medium">Day 6 圓滿返台</span>
@@ -873,7 +972,7 @@ ightarrow$ 計程車直奔 JEN 烏節門入住</h3>
     <!-- ========================================== -->
     <!-- TAB: DINING (特色美食地圖) -->
     <!-- ========================================== -->
-    <div id="tab-dining" class="tab-content hidden space-y-4">
+    <div id="tab-dining" class="tab-content space-y-4">
       
       <!-- Spotlight Designated Restaurant -->
       <section class="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white rounded-2xl p-4 shadow-md">
@@ -893,7 +992,7 @@ ightarrow$ 計程車直奔 JEN 烏節門入住</h3>
               <span>📍 開啟黃亞細 Google Maps</span>
             </a>
           </div>
-          <p>🎯 <strong>地利之便：</strong> 位於 Central Square 1樓，<strong>正對面即為前 3 晚入住的 Paradox 飯店（距離僅約 200 公尺、步行 3 分鐘）！</strong> 步行即可回房，零交通風險保證 13:00 準時午睡！</p>
+          <p>🎯 <strong>地利之便：</strong> 位於 Central Square 1樓，<strong>距離前 3 晚入住的香港街明古連酒店僅約 350 公尺（步行約 4-5 分鐘）！</strong> 步行即可回房，零交通風險保證 13:00 準時午睡！</p>
           <p>🍲 <strong>必點名物：</strong> 特選排骨肉骨茶（白胡椒辛香溫醇、湯頭清澈）、特選滷豬腳、酥脆油條、滷花生與功夫茶。</p>
           <p>👶 <strong>1.5歲幼兒用餐指引：</strong> 肉骨茶胡椒辛辣不宜直接飲用。可向店家索取不辣之白大骨清湯或溫水，或點香Q白飯淋滷汁、剪碎滷豬腳軟嫩瘦肉與滷豆腐泡軟，寶寶吃得營養開心。備有兒童高腳椅。</p>
         </div>
@@ -951,18 +1050,18 @@ ightarrow$ 計程車直奔 JEN 烏節門入住</h3>
             </p>
           </div>
 
-          <!-- 紐頓熟食中心 -->
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+          <!-- 烏節路伴手禮與商場美食 -->
+          <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-100">
             <div class="flex items-start justify-between">
               <div>
-                <span class="text-[10px] font-bold text-slate-400">Day 4 晚餐</span>
-                <h3 class="font-bold text-slate-900 text-sm">紐頓熟食中心 (Newton Food Centre)</h3>
-                <p class="text-slate-500 mt-0.5">地鐵紅線 Somerset 坐 2 站直達 Newton</p>
+                <span class="text-[10px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded">Day 4 晚餐 & 伴手禮採購</span>
+                <h3 class="font-bold text-slate-900 text-sm mt-1">313@Somerset & 烏節路伴手禮美食巡禮</h3>
+                <p class="text-slate-500 mt-0.5">JEN 飯店樓下與對街高島屋百貨 (步行 1-3 分鐘)</p>
               </div>
-              <a href="https://maps.google.com/?q=Newton+Food+Centre+Singapore" target="_blank" rel="noopener noreferrer" class="text-brand-600 hover:underline shrink-0">📍 地圖</a>
+              <a href="https://maps.google.com/?q=313%40Somerset+Singapore" target="_blank" rel="noopener noreferrer" class="text-brand-600 hover:underline shrink-0">📍 地圖</a>
             </div>
-            <p class="text-slate-600 mt-1.5 pt-1.5 border-t border-slate-200/60">
-              🍲 推薦：71號沙爹、興記福建蝦麵、炒蘿蔔糕；點清淡魚片湯泡飯給寶寶享用。
+            <p class="text-slate-600 mt-1.5 pt-1.5 border-t border-purple-200/60">
+              🛍️ <strong>必買伴手禮：</strong> 313 B1 Bengawan Solo（斑蘭戚風蛋糕、娘惹糕）、313 B2 FairPrice Finest 超市（百勝廚叻沙拉麵、肉骨茶包、咖椰醬、虎標軟膏）、高島屋 Bacha Coffee & TWG Tea。食代館美食街或樂皇小籠包用餐，買完電梯直達回房放戰利品！
             </p>
           </div>
 
@@ -1002,7 +1101,7 @@ ightarrow$ 計程車直奔 JEN 烏節門入住</h3>
     <!-- ========================================== -->
     <!-- TAB: PACKING (幼兒必備打包清單) -->
     <!-- ========================================== -->
-    <div id="tab-packing" class="tab-content hidden space-y-4">
+    <div id="tab-packing" class="tab-content space-y-4">
       <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
         <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
           <div>
@@ -1298,5 +1397,3 @@ ightarrow$ 計程車直奔 JEN 烏節門入住</h3>
   </script>
 </body>
 </html>
-
-
